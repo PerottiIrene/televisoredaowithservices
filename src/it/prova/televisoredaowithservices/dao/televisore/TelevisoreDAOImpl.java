@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import it.prova.televisoredaowithservices.dao.AbstractMySQLDAO;
@@ -149,56 +150,140 @@ public class TelevisoreDAOImpl extends AbstractMySQLDAO implements TelevisoreDao
 
 	@Override
 	public List<Televisore> findByExample(Televisore input) throws Exception {
-		
+
 		// prima di tutto cerchiamo di capire se possiamo effettuare le operazioni
-				if (isNotActive())
-					throw new Exception("Connessione non attiva. Impossibile effettuare operazioni DAO.");
+		if (isNotActive())
+			throw new Exception("Connessione non attiva. Impossibile effettuare operazioni DAO.");
 
-				if (input == null)
-					throw new Exception("Valore di input non ammesso.");
+		if (input == null)
+			throw new Exception("Valore di input non ammesso.");
 
-				ArrayList<Televisore> result = new ArrayList<Televisore>();
+		ArrayList<Televisore> result = new ArrayList<Televisore>();
 
-				String query = "select * from televisore where 1=1 ";
-				if (input.getMarca() != null && !input.getMarca().isEmpty()) {
-					query += " and marca like '" + input.getMarca() + "%' ";
-				}
+		String query = "select * from televisore where 1=1 ";
+		if (input.getMarca() != null && !input.getMarca().isEmpty()) {
+			query += " and marca like '" + input.getMarca() + "%' ";
+		}
 
-				if (input.getModello() != null && !input.getModello().isEmpty()) {
-					query += " and modello like '" + input.getModello() + "%' ";
-				}
+		if (input.getModello() != null && !input.getModello().isEmpty()) {
+			query += " and modello like '" + input.getModello() + "%' ";
+		}
 
-				if (input.getPollici () != 0 ) {
-					query += " and pollici like '" + input.getPollici() + "%' ";
-				}
+		if (input.getPollici() != 0) {
+			query += " and pollici like '" + input.getPollici() + "%' ";
+		}
 
-				if (input.getDataProduzione() != null) {
-					query += " and DATAPRODUZIONE='" + new java.sql.Date(input.getDataProduzione().getTime()) + "' ";
-				}
+		if (input.getDataProduzione() != null) {
+			query += " and DATAPRODUZIONE='" + new java.sql.Date(input.getDataProduzione().getTime()) + "' ";
+		}
 
-				try (Statement ps = connection.createStatement()) {
-					ResultSet rs = ps.executeQuery(query);
+		try (Statement ps = connection.createStatement()) {
+			ResultSet rs = ps.executeQuery(query);
 
-					while (rs.next()) {
-						Televisore televisoreTemp = new Televisore();
-						televisoreTemp.setMarca(rs.getString("marca"));
-						televisoreTemp.setModello(rs.getString("modello"));
-						televisoreTemp.setPollici(rs.getInt("pollici"));
-						televisoreTemp.setDataProduzione(rs.getDate("dataproduzione"));
-						televisoreTemp.setId(rs.getLong("ID"));
-						result.add(televisoreTemp);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					throw e;
-				}
-				return result;
+			while (rs.next()) {
+				Televisore televisoreTemp = new Televisore();
+				televisoreTemp.setMarca(rs.getString("marca"));
+				televisoreTemp.setModello(rs.getString("modello"));
+				televisoreTemp.setPollici(rs.getInt("pollici"));
+				televisoreTemp.setDataProduzione(rs.getDate("dataproduzione"));
+				televisoreTemp.setId(rs.getLong("ID"));
+				result.add(televisoreTemp);
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return result;
+	}
 
 	@Override
 	public void setConnection(Connection connection) {
 		this.connection = connection;
-
 	}
 
+	public List<Televisore> televisoriProdottiInIntervalloDiDate(Date dataInizio, Date dataFine) throws Exception {
+
+		if (isNotActive())
+			throw new Exception("Connessione non attiva. Impossibile effettuare operazioni DAO.");
+
+		if (dataInizio == null || dataFine == null)
+			throw new Exception("Valore di input non ammesso.");
+
+		List<Televisore> result = new ArrayList<Televisore>();
+		try (PreparedStatement ps = connection
+				.prepareStatement("select * from televisore where dataproduzione between ? and ? ")) {
+
+			ps.setDate(1, new java.sql.Date(dataInizio.getTime()));
+			ps.setDate(2, new java.sql.Date(dataFine.getTime()));
+
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					Televisore televisoreTemp = new Televisore();
+					televisoreTemp.setMarca(rs.getString("marca"));
+					televisoreTemp.setModello(rs.getString("modello"));
+					televisoreTemp.setPollici(rs.getInt("pollici"));
+					televisoreTemp.setDataProduzione(rs.getDate("dataproduzione"));
+					televisoreTemp.setId(rs.getLong("ID"));
+					result.add(televisoreTemp);
+				}
+			} // niente catch qui
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return result;
+	}
+
+	public Televisore televisorePiuGrande() throws Exception {
+
+		if (isNotActive())
+			throw new Exception("Connessione non attiva. Impossibile effettuare operazioni DAO.");
+
+		Televisore result = new Televisore();
+		try (PreparedStatement ps = connection
+				.prepareStatement("select * from televisore where pollici = (select max(pollici) from televisore);")) {
+
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					result.setMarca(rs.getString("marca"));
+					result.setModello(rs.getString("modello"));
+					result.setPollici(rs.getInt("pollici"));
+					result.setDataProduzione(rs.getDate("dataproduzione"));
+					result.setId(rs.getLong("ID"));
+				} else {
+					result = null;
+				}
+			} // niente catch qui
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return result;
+	}
+
+	@Override
+	public List<String> marcheDiTelevisoriProdottiNegliUltimiSeiMesi(Date dataSeiMesiFa) throws Exception {
+
+		if (isNotActive())
+			throw new Exception("Connessione non attiva. Impossibile effettuare operazioni DAO.");
+
+		List<String> result = new ArrayList<String>();
+		try (PreparedStatement ps = connection
+				.prepareStatement("select distinct(marca) from televisore where dataproduzione > ?;")) {
+
+			ps.setDate(1, new java.sql.Date(dataSeiMesiFa.getTime()));
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					result.add(rs.getString("marca"));
+				}
+			} // niente catch qui
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return result;
+	}
 }

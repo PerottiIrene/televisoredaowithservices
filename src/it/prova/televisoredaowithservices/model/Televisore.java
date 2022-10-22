@@ -1,5 +1,6 @@
 package it.prova.televisoredaowithservices.model;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Televisore {
@@ -79,7 +80,12 @@ public class Televisore {
 		this.dataProduzione = dataProduzione;
 	}
 	
-	
+	public String toString() {
+		String dateProduzioneString = dataProduzione!=null?new SimpleDateFormat("dd/MM/yyyy").format(dataProduzione):" N.D.";
+		
+		return "Televisore [id=" + id + ", marca=" + marca + ", modello=" + modello + ", pollici=" + pollici 
+				+ ",dataProduzione=" + dateProduzioneString + "]";
+	}
 	
 
 }

@@ -2,6 +2,7 @@ package it.prova.televisoredaowithservices.service.televisore;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import it.prova.televisoredaowithservices.connection.MyConnection;
@@ -80,12 +81,12 @@ public class TelevisoreServiceImpl implements TelevisoreService {
 
 	@Override
 	public int insert(Televisore input) throws Exception {
-		
+
 		if (input == null)
 			throw new Exception("Valore di input non ammesso.");
-		
-		int result=0;
-		try(Connection connection = MyConnection.getConnection(Constants.DRIVER_NAME, Constants.CONNECTION_URL)) {
+
+		int result = 0;
+		try (Connection connection = MyConnection.getConnection(Constants.DRIVER_NAME, Constants.CONNECTION_URL)) {
 
 			// inietto la connection nel dao
 			televisoreDao.setConnection(connection);
@@ -96,13 +97,13 @@ public class TelevisoreServiceImpl implements TelevisoreService {
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
-		} 
+		}
 		return result;
 	}
 
 	@Override
 	public List<Televisore> findByExample(Televisore input) throws Exception {
-		
+
 		if (input == null)
 			throw new Exception("Valore di input non ammesso.");
 		List<Televisore> result = new ArrayList<>();
@@ -119,16 +120,16 @@ public class TelevisoreServiceImpl implements TelevisoreService {
 			throw e;
 		}
 		return result;
-}
+	}
 
 	@Override
 	public int delete(Televisore input) throws Exception {
-		
-		if (input == null || input.getId() == null || input.getId() <1)
+
+		if (input == null || input.getId() == null || input.getId() < 1)
 			throw new Exception("Valore di input non ammesso.");
-		
+
 		int result = 0;
-		try(Connection connection = MyConnection.getConnection(Constants.DRIVER_NAME, Constants.CONNECTION_URL)) {
+		try (Connection connection = MyConnection.getConnection(Constants.DRIVER_NAME, Constants.CONNECTION_URL)) {
 
 			// inietto la connection nel dao
 			televisoreDao.setConnection(connection);
@@ -141,5 +142,65 @@ public class TelevisoreServiceImpl implements TelevisoreService {
 			throw e;
 		}
 		return result;
-}
+	}
+
+	@Override
+	public List<Televisore> televisoriProdottiInIntervalloDiDate(Date dataInizio, Date dataFine) throws Exception {
+
+		if (dataInizio == null || dataFine == null)
+			throw new Exception("Valore di input non ammesso.");
+
+		List<Televisore> result = new ArrayList<>();
+		try (Connection connection = MyConnection.getConnection(Constants.DRIVER_NAME, Constants.CONNECTION_URL)) {
+
+			// inietto la connection nel dao
+			televisoreDao.setConnection(connection);
+
+			// eseguo quello che realmente devo fare
+			result = televisoreDao.televisoriProdottiInIntervalloDiDate(dataInizio, dataFine);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return result;
+	}
+
+	@Override
+	public Televisore televisorePiuGrande() throws Exception {
+
+		Televisore result = new Televisore();
+		try (Connection connection = MyConnection.getConnection(Constants.DRIVER_NAME, Constants.CONNECTION_URL)) {
+
+			// inietto la connection nel dao
+			televisoreDao.setConnection(connection);
+
+			// eseguo quello che realmente devo fare
+			result = televisoreDao.televisorePiuGrande();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return result;
+	}
+
+	@Override
+	public List<String> marcheDiTelevisoriProdottiNegliUltimiSeiMesi(Date dataSeiMesiFa) throws Exception {
+
+		List<String> result = new ArrayList<>();
+		try (Connection connection = MyConnection.getConnection(Constants.DRIVER_NAME, Constants.CONNECTION_URL)) {
+
+			// inietto la connection nel dao
+			televisoreDao.setConnection(connection);
+
+			// eseguo quello che realmente devo fare
+			result = televisoreDao.marcheDiTelevisoriProdottiNegliUltimiSeiMesi(dataSeiMesiFa);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		return result;
+	}
 }

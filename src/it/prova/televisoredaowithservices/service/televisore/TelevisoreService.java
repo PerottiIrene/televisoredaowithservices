@@ -1,8 +1,8 @@
 package it.prova.televisoredaowithservices.service.televisore;
 
+import java.util.Date;
 import java.util.List;
 
-import it.prova.televisoredaowithservices.dao.televisore.TelevisoreDAOImpl;
 import it.prova.televisoredaowithservices.dao.televisore.TelevisoreDao;
 import it.prova.televisoredaowithservices.model.Televisore;
 
@@ -22,6 +22,12 @@ public interface TelevisoreService {
 	public List<Televisore> findByExample(Televisore input) throws Exception;
 	
 	public int delete(Televisore input) throws Exception;
+	
+	public List<Televisore> televisoriProdottiInIntervalloDiDate (Date dataInizio,Date dataFine) throws Exception;
+	
+	public Televisore televisorePiuGrande() throws Exception;
+	
+	public List<String> marcheDiTelevisoriProdottiNegliUltimiSeiMesi (Date dataSeiMesiFa) throws Exception;
 	
 
 }
